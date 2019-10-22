@@ -3,37 +3,46 @@ using System.Collections;
 
 public class SteeringWander : MonoBehaviour {
 
-	public float min_distance = 0.1f;
-	public float time_to_target = 0.25f;
+	public Vector3 offset = Vector3.zero;
+	public float radius = 1.0f;
+	public float min_update = 0.5f;
+	public float max_update = 3.0f;
 
-	Move move;
+	SteeringSeek seek;
+	Vector3 random_point;
 
 	// Use this for initialization
 	void Start () {
-		move = GetComponent<Move>();
+		seek = GetComponent<SteeringSeek>();
+		ChangeTarget();
 	}
 
-	// Update is called once per frame
-	void Update () 
+    private void Update()
+    {
+        seek.Steer(random_point);
+    }
+
+    // Update is called once per frame
+    void ChangeTarget () 
 	{
-        // TODO Homework: Update the target location to a random point in a circle
-        // You could just call seek.Steer() / arrive.Steer() or simply do the calculations by yourself
-        // like the code below.
+		random_point = Random.insideUnitSphere;
+		random_point *= radius;
+		random_point += transform.position + offset;
+		random_point.y = transform.position.y;
 
-		Vector3 diff = move.target.transform.position - transform.position;
-
-		if(diff.magnitude < min_distance)
-			return;
-
-		diff /= time_to_target;
-
-		move.AccelerateMovement(diff);
+		Invoke("ChangeTarget", Random.Range(min_update, max_update));
 	}
 
 	void OnDrawGizmosSelected() 
 	{
-		// Display the explosion radius when selected
-		Gizmos.color = Color.white;
-		Gizmos.DrawWireSphere(transform.position, min_distance);
+		if(this.isActiveAndEnabled)
+		{
+			// Display the explosion radius when selected
+			Gizmos.color = Color.yellow;
+			Gizmos.DrawWireSphere(transform.TransformPoint(offset), radius);
+		
+			Gizmos.color = Color.red;
+			Gizmos.DrawWireSphere(random_point, 0.2f);
+		}
 	}
 }

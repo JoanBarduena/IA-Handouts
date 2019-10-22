@@ -15,13 +15,11 @@ public class KinematicFaceMovement : MonoBehaviour {
 	// Update is called once per frame
 	void Update () 
 	{
-		float target_degrees = Mathf.Atan2(move.movement.x, move.movement.z) * Mathf.Rad2Deg;
-		float current_degrees = Mathf.Atan2(transform.forward.x, transform.forward.z) * Mathf.Rad2Deg;
-		float delta = Mathf.DeltaAngle(target_degrees, current_degrees);
+        float delta = Vector3.SignedAngle(transform.forward, move.current_velocity, new Vector3(0.0f, 1.0f, 0.0f));
 
 		if(Mathf.Abs(delta) < min_angle)
 			move.SetRotationVelocity(0.0f);
 		else
-			move.SetRotationVelocity(-delta);
+			move.SetRotationVelocity(delta);
 	}
 }

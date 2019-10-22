@@ -3,7 +3,7 @@ using System.Collections;
 
 public class SteeringVelocityMatching : MonoBehaviour {
 
-	public float time_to_accel = 0.25f;
+	public float time_to_target = 0.25f;
 
 	Move move;
 	Move target_move;
@@ -19,9 +19,21 @@ public class SteeringVelocityMatching : MonoBehaviour {
 	{
 		if(target_move)
 		{
-            // TODO 8: First come up with your ideal velocity
-            // then accelerate to it.
+			// Create a vector that describes the ideal velocity
+			Vector3 ideal_movement = target_move.current_velocity;
 
-        }
+			// Calculate acceleration needed to match that velocity
+			Vector3 acceleration = ideal_movement - move.current_velocity;
+			acceleration /= time_to_target;
+
+			// Cap acceleration
+			if(acceleration.magnitude > move.max_mov_acceleration)
+			{
+				acceleration.Normalize();
+				acceleration *= move.max_mov_acceleration;
+			}
+
+			move.AccelerateMovement(acceleration);
+		}
 	}
 }

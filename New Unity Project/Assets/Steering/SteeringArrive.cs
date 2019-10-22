@@ -5,8 +5,7 @@ public class SteeringArrive : MonoBehaviour {
 
 	public float min_distance = 0.1f;
 	public float slow_distance = 5.0f;
-	public float time_to_accel = 0.1f;
-    public float slow_factor = 1.0f; 
+	public float time_to_target = 0.1f;
 
 	Move move;
 
@@ -18,7 +17,7 @@ public class SteeringArrive : MonoBehaviour {
 	// Update is called once per frame
 	void Update () 
 	{
-		    Steer(move.target.transform.position);
+		Steer(move.target.transform.position);
 	}
 
 	public void Steer(Vector3 target)
@@ -26,48 +25,39 @@ public class SteeringArrive : MonoBehaviour {
 		if(!move)
 			move = GetComponent<Move>();
 
-        // TODO 3: Find the acceleration to achieve the desired velocity
-        // If we are close enough to the target just stop moving and do nothing else
-        // Calculate the desired acceleration using the velocity we want to achieve and the one we already have
-        // Use time_to_target as the time to transition from the current velocity to the desired velocity
-        // Clamp the desired acceleration and call move.AccelerateMovement()
+		// Velocity we are trying to match
+		float ideal_speed = 0.0f;
+		Vector3 diff = target - transform.position;
 
-        //TODO 4: Add a slow factor to reach the target
-        // Start slowing down when we get closer to the target
-        // Calculate a slow factor (0 to 1 multiplier to desired velocity)
-        // Once inside the slow radius, the further we are from it, the slower we go
-
-        Vector3 dist2targ = move.target.transform.position - transform.position;
-        Vector3 current_vel = move.movement;
-
-        if (dist2targ.magnitude <= min_distance)
+		if(diff.magnitude < min_distance)
         {
-            dist2targ.Normalize();
-            dist2targ = Vector3.zero;
-        }
-        else if (dist2targ.magnitude <= slow_distance)
-        {
-            slow_factor = dist2targ.magnitude / slow_distance;
-            dist2targ.Normalize();
-            dist2targ *= move.max_mov_speed * slow_factor;
-        }
-        else //Clamp
-        {
-            dist2targ.Normalize();
-            dist2targ *= move.max_mov_speed;
+            move.SetMovementVelocity(Vector3.zero);
+            return;
         }
 
-        Vector3 desired_acc = dist2targ - current_vel;
-        desired_acc /= time_to_accel;
-        if(desired_acc.magnitude > move.max_mov_acceleration)
-        {
-            desired_acc.Normalize();
-            desired_acc *= move.max_mov_acceleration;
-        }    
-        move.AccelerateMovement(desired_acc);
-    }
+        // Decide which would be our ideal velocity
+        if (diff.magnitude > slow_distance)
+			ideal_speed = move.max_mov_speed;
+		else
+            ideal_speed = move.max_mov_speed * (diff.magnitude / slow_distance);
 
-    void OnDrawGizmosSelected() 
+		// Create a vector that describes the ideal velocity
+		Vector3 ideal_movement = diff.normalized * ideal_speed;
+
+		// Calculate acceleration needed to match that velocity
+		Vector3 acceleration = ideal_movement - move.current_velocity;
+		acceleration /= time_to_target;
+
+		// Cap acceleration
+		if(acceleration.magnitude > move.max_mov_acceleration)
+		{
+			acceleration = acceleration.normalized * move.max_mov_acceleration;
+		}
+
+		move.AccelerateMovement(acceleration);
+	}
+
+	void OnDrawGizmosSelected() 
 	{
 		// Display the explosion radius when selected
 		Gizmos.color = Color.white;

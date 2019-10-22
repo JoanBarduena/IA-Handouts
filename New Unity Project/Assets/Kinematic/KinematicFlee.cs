@@ -13,9 +13,8 @@ public class KinematicFlee : MonoBehaviour {
 	// Update is called once per frame
 	void Update () 
 	{
-		Vector3 diff = move.transform.position - move.target.transform.position;
-		diff.Normalize ();
-		diff *= move.max_mov_speed;
+		Vector3 diff = transform.position - move.target.transform.position;
+		diff = diff.normalized * move.max_mov_speed;
 
 		move.SetMovementVelocity(diff);
 	}
